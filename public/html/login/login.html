@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모빌리티 조기 경보 시스템</title>
+    <link href="../css/common.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.0/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* 배경 이미지 설정 */
+        body {
+            background-image: url('../img/back_img.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            position: relative; /* 부모 요소가 가상 요소를 가질 수 있도록 설정 */
+        }
+
+        /* 어두운 오버레이 추가 */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* 반투명 어두운 오버레이 */
+            z-index: -1; /* 오버레이가 내용 뒤에 배치되도록 설정 */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    <!-- 헤더 -->
+    <header class="p-4 bg-green-600 text-white py-4 text-center shadow-md">
+        <h1 class="text-2xl font-bold">모빌리티 조기 경보 시스템</h1>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="flex-grow flex items-center justify-center">
+        <div class="login-container text-center">
+            <h2 class="text-xl font-semibold mb-6">SNS 로그인</h2>
+
+            <!-- 카카오 로그인 버튼 -->
+            <button id="kakao-login-btn" class="flex items-center justify-center hover:bg-white-500 text-black font-medium rounded-lg py-3 px-6 w-full shadow-md transition-all">
+                <img src="../img/kakao_logo.svg" alt="카카오 로고" class="h-6 w-6 mr-3">
+                카카오 로그인
+            </button>
+
+            <p id="status" class="text-red-500 mt-4 text-sm"></p>
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="p-4 bg-green-600 text-white text-center">
+        Copyright (C) 2024, Flux Company. All Rights Reserved.
+    </footer>
+
+    <script src="../js/login/login.js"></script>
+</body>
+</html>
