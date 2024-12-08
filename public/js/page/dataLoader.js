@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", loadToken);
 document.addEventListener("DOMContentLoaded", loadReward);
 document.addEventListener("DOMContentLoaded", loadRecord);
 
-// 공통 API URL
 const backendUrl = '/api'; //백엔드 url
 const jwtToken = localStorage.getItem("jwtToken");
 
@@ -18,17 +17,29 @@ async function isToken() {
 
 // 토큰 정보 로드
 async function loadToken() {
-    console.log('Token not yet...');
+    try {
+        const response = await fetch(`${backendUrl}/member/get-blockToken`, {
+            method: "GET",
+            headers: { 'Authorization': `Bearer ${jwtToken}` }
+        });
 
-    // get 해와야 함
+        if (!response.ok) {
+            throw new Error(`Failed to fetch token data: ${response.text}`);
+        }
 
-    // 보상 토큰 업데이트
-    /*
-    const rewardToken = document.getElementById("rewardToken");
-    if (rewardToken) {
-        rewardToken.textContent = `${reward.totalTokens || 0}개`;
+        // 보상 토큰 업데이트
+        const rewardToken = document.getElementById("rewardToken");
+        if (rewardToken) {
+            rewardToken.textContent = `${reward.totalTokens || 0}개`;
+        }
+    } catch (error) {
+        console.error("Error loading token:", error);
+
+        const rewardToken = document.getElementById("rewardToken");
+        if (rewardToken) {
+            rewardToken.textContent = `token 데이터를 불러오는 중 오류가 발생했습니다.`;
+        }
     }
-    */
 }
 
 // 보상 정보 로드
@@ -82,7 +93,7 @@ async function loadReward() {
 
         const tableBody = document.getElementById("rewardTableBody");
         if (tableBody) {
-            tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-red-500">reward 데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
         }
 
         if (error.message.includes("401") || error.message.includes("403")) {
@@ -133,7 +144,7 @@ async function loadRecord() {
                     tableBody.appendChild(row);
                 });
             } else {
-                tableBody.innerHTML = `<tr><td colspan="2" class="text-center text-gray-500">신고 내역이 없습니다.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="2" class="text-center text-gray-500">알림 내역이 없습니다.</td></tr>`;
             }
         }
     } catch (error) {
@@ -141,7 +152,7 @@ async function loadRecord() {
 
         const tableBody = document.getElementById("recordTableBody");
         if (tableBody) {
-            tableBody.innerHTML = `<tr><td colspan="2" class="text-center text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="2" class="text-center text-red-500">record 데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
         }
 
         if (error.message.includes("401") || error.message.includes("403")) {
