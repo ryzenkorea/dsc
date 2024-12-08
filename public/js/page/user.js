@@ -6,30 +6,26 @@ const userEmail = document.getElementById("userEmail");
 
 // 페이지 로드 시, 먼저 로그인 상태를 확인
 document.addEventListener('DOMContentLoaded', async () => {
-    const jwtToken = localStorage.getItem("jwtToken");
-
-    // 로그인 상태라면 사용자 정보를 업데이트
-    if (jwtToken) {
-        console.log(localStorage);
-        updateUserInfo();
-    }
-    //로그인 프로세스 코드(리다이렉트가 로컬로 되있어서 오류뜨는 듯)
-    /*
-    else if(localStorage.getItem("jwtToken") === null){
-        console.log(localStorage);
-        alert('로그인 정보가 없습니다. 로그인 페이지로 이동합니다.');
-        window.location.href = '/';
-    }
-    */
-
-    // URL에 포함된 'code' 처리 (카카오 로그인 후)
+    // URL의 code 파라미터를 먼저 체크
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
 
     if (code) {
+        // 카카오 로그인 콜백 처리를 먼저 실행
         await handleKakaoLoginCallback(code);
+        return; // 콜백 처리 후 종료
     }
 
+    // 코드 파라미터가 없을 때만 로그인 상태 체크
+    const jwtToken = localStorage.getItem("jwtToken");
+    if (jwtToken) {
+        console.log(localStorage);
+        updateUserInfo();
+    } else {
+        console.log(localStorage);
+        alert('로그인 정보가 없습니다. 로그인 페이지로 이동합니다.');
+        window.location.href = '/';
+    }
 });
 
 // 카카오 로그인 후 콜백 처리 함수
