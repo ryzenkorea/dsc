@@ -3,19 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>보상 내역</title>
+    <title>알림 기록 확인</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.0/dist/tailwind.min.css" rel="stylesheet">
     <link href="../css/common.css" rel="stylesheet">
-    <!--로그인프로세스 부분(지은님 ver 일단 주석으로 비활성화)-->
-    <!--
-    <script src="../js/login/login_process.js"></script>
-    -->
-
-    <!--데이터 불러오는 부분(현재는 비어있음)-->
-    <script>
-
-    </script>
 </head>
+
 <body class="bg-gray-100 flex flex-col min-h-screen">
     <header class="p-4 bg-green-600 text-white flex justify-between items-center">
         <!-- 메인 제목(클릭시 메인페이지로 리다이렉션 백엔드에 따라 수정 필요)-->
@@ -76,8 +68,8 @@
     <main class="p-4 flex-grow">
         <!-- 보상,기록 바로가기 -->
         <div class="flex justify-end gap-2 mb-4">
-            <button onclick="window.location.href='/reward';" class="bg-green-500 text-white p-2 rounded-lg shadow-md hover:bg-green-600 transition-colors">보상확인</button>
-            <button onclick="window.location.href='/record';" class="bg-yellow-500 text-white p-2 rounded-lg shadow-md hover:bg-yellow-600 transition-colors">기록확인</button>
+            <button onclick="window.location.href='/reward';" class="bg-green-500 text-white p-2 rounded-lg shadow-md hover:bg-green-600 transition-colors">신고 보상 확인</button>
+            <button onclick="window.location.href='/record';" class="bg-yellow-500 text-white p-2 rounded-lg shadow-md hover:bg-yellow-600 transition-colors">알림 기록 확인</button>
         </div>
         <section class="bg-white p-4 rounded-lg shadow-md">
             <h2 class="text-xl font-semibold mb-4 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg inline-block">기록 확인</h2>
@@ -86,10 +78,9 @@
                     <tr class="bg-yellow-100">
                         <th class="border px-4 py-2">날짜</th>
                         <th class="border px-4 py-2">신고 내용</th>
-                        <th class="border px-4 py-2">P/F</th>
                     </tr>
                 </thead>
-                <tbody id="rewardsTableBody">
+                <tbody id="recordTableBody">
                     <!-- 데이터가 여기에 동적으로 추가됩니다 -->
                 </tbody>
             </table>
@@ -103,5 +94,6 @@
     <script src="../js/page/user.js"></script>
     <script src="../js/page/notion.js"></script>
     <script src="../js/page/utility.js"></script>
+    <!-- <script src="../js/page/dataLoader.js"></script> -->
 </body>
 </html>
