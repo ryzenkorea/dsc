@@ -22,8 +22,6 @@ async function loadReward() {
             throw new Error(`Failed to fetch reward data: ${response.text}`);
         }
 
-        console.log(response);
-
         const reward = await response.json();
 
         // JSON 전체 데이터 출력

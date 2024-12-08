@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT Token Validator</title>
+</head>
+<body>
+  <h1>JWT Token Validator</h1>
+  <p>Validates the JWT token stored in Local Storage.</p>
+
+  <button id="validate-btn">Validate Token</button>
+
+  <h2>Validation Result:</h2>
+  <pre id="result"></pre>
+
+  <script>
+    async function validateTokenFromLocalStorage() {
+      const resultElement = document.getElementById('result');
+
+      // Retrieve token from local storage
+      const token = localStorage.getItem('jwtToken');
+
+      if (!token) {
+        resultElement.textContent = 'No JWT token found in Local Storage.';
+        return;
+      }
+
+      try {
+        // Call the validate-token endpoint
+        const response = await fetch('http://3.39.57.93:8080/member/validate-token', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.text();
+          resultElement.textContent = `Token is valid!\n${data}`;
+        } else {
+          const errorText = await response.text();
+          resultElement.textContent = `Token validation failed: ${errorText}`;
+        }
+      } catch (error) {
+        resultElement.textContent = `An error occurred: ${error.message}`;
+      }
+    }
+
+    // Attach click event listener
+    document.getElementById('validate-btn').addEventListener('click', validateTokenFromLocalStorage);
+  </script>
+</body>
+</html>
