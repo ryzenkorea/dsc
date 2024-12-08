@@ -1,4 +1,4 @@
-const BASE_URL = '/report';  // 벡엔드 서버 API URL
+const BASE_URL = '/api';  // 벡엔드 서버 API URL
 
 // 좌표를 가져오는 함수 추가
 function getCurrentCoordinates() {
@@ -39,7 +39,7 @@ function closeModal() {
 //신고 전송
 async function sendReport(token, type, latitude, longitude) {
     try {
-        const response = await fetch(`${BASE_URL}`, {
+        const response = await fetch(`${BASE_URL}/report`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -55,7 +55,7 @@ async function sendReport(token, type, latitude, longitude) {
         });
 
         if (response.ok) {
-            const result = await response.json();
+            const result = await response.text(); // JSON 대신 문자열로 파싱
             console.log("신고 전송 성공:", result);
             console.log(`토큰:${token}, 타입:${type}, 신고 전송 좌표: 위도(${latitude}), 경도(${longitude}), 시간: ${new Date().toISOString()}`);
         } else {
