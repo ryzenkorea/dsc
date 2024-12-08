@@ -7,7 +7,6 @@ const fs = require("fs");            // 파일 시스템 모듈
 const https = require("https");      // https 모듈
 const httpProxy = require('http-proxy-middleware');
 const createProxyMiddleware = httpProxy.createProxyMiddleware;
-
 const app = express();               // Express 앱 생성
 const PORT = 3000;                   // 서버가 실행될 포트 번호
 
@@ -21,12 +20,33 @@ app.use(cors({
     credentials: true, // 쿠키나 인증 정보를 포함하는 요청을 허용
 }));
 
-// 프록시 미들웨어 설정
+// 프록시 미들웨어 설정 1
 app.use('/api', createProxyMiddleware({
     target: BACKEND_URL,
     changeOrigin: true,
     pathRewrite: {
         '^/api': '', // '/api' 경로를 ''로 리작성
+    },
+    onProxyReq: (proxyReq, req, res) => {
+        // 디버깅을 위한 로그 추가
+        console.log('Proxy Request:', {
+            path: proxyReq.path,
+            method: proxyReq.method,
+            headers: proxyReq.getHeaders()
+        });
+    },
+    onError: (err, req, res) => {
+        console.error('Proxy Error:', err);
+        res.status(500).send('Proxy Error');
+    }
+}));
+
+// 프록시 미들웨어 설정 2
+app.use('/report', createProxyMiddleware({
+    target: BACKEND_URL,
+    changeOrigin: true,
+    pathRewrite: {
+        '^/report': '', // '/report' 경로를 ''로 리작성
     },
     onProxyReq: (proxyReq, req, res) => {
         // 디버깅을 위한 로그 추가
@@ -102,6 +122,7 @@ app.get('/api/kakao/callback', async (req, res) => {
     }
 });
 
+
 // https 인증서 파일 경로 (자체 서명된 인증서>> 임시로 사용)
 const privateKey = fs.readFileSync(path.join(__dirname, 'my-ssl', 'server.key'), 'utf8');
 const certificate = fs.readFileSync(path.join(__dirname, 'my-ssl', 'server.crt'), 'utf8');
@@ -112,18 +133,18 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // 기본 라우트: mainpage.html 제공
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'html','login', 'login.html'));
+    res.sendFile(path.join(__dirname, 'public', 'html', 'login', 'login.html'));
 });
 
 app.get("/mainpage", (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'html','page', 'mainpage.html'));
+    res.sendFile(path.join(__dirname, 'public', 'html', 'page', 'mainpage.html'));
 });
 
 app.get("/reward", (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'html','page', 'reward.html'));
+    res.sendFile(path.join(__dirname, 'public', 'html', 'page', 'reward.html'));
 });
 app.get("/record", (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'html','page', 'record.html'));
+    res.sendFile(path.join(__dirname, 'public', 'html', 'page', 'record.html'));
 });
 
 // HTTPS 서버 실행
