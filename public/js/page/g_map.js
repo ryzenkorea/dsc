@@ -3,6 +3,7 @@ let map, userMarker;
 let isPingMode = false;
 let pingMarker = null;
 
+
 // 사용자 정의 마커 데이터(테스트)
 const markers = [
     { lat: 36.310, lng: 127.408, color: "red", shape: "falling" },
@@ -137,14 +138,23 @@ function handleGeolocationError(error) {
 
 // 위치 표시 업데이트 함수
 function updateLocationDisplay(location) {
-    const lat = location.lat().toFixed(3);
-    const lng = location.lng().toFixed(3);
+    const lat = location.lat().toFixed(4);
+    const lng = location.lng().toFixed(4);
+
+    // 로컬 스토리지에 값 초기화 후 저장
+    localStorage.removeItem("latitude");
+    localStorage.removeItem("longitude");
+    localStorage.setItem("latitude", lat);
+    localStorage.setItem("longitude", lng);
+
+
     const locationElement = document.getElementById('location');
     locationElement.innerHTML = `
         <div class="font-bold">[현재위치]</div>
         <div>위도: ${lat}</div>
         <div>경도: ${lng}</div>
     `;
+
 }
 
 // 신고 지점 핑 찍기
@@ -159,6 +169,7 @@ function addPingMarker(location, isPingModeAction = false, showAlert = true) {
 
     userMarker.setPosition(location);
     updateLocationDisplay(location);
+
 
     if (isPingModeAction) togglePingMode();
     if (showAlert) alert("위치변경이 완료되었습니다.");
