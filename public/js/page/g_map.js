@@ -101,46 +101,108 @@ function startLocationUpdates() {
         maximumAge: 0
     };
 
+    function getCurrentCoordinates() {
+        return {
+            latitude: parseFloat(localStorage.getItem("latitude")),
+            longitude: parseFloat(localStorage.getItem("longitude"))
+        };
+    }
+
     // 초기 위치 가져오기
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
+                // localStorage에 위치 저장
+                localStorage.setItem("latitude", position.coords.latitude);
+                localStorage.setItem("longitude", position.coords.longitude);
+
+                const coords = getCurrentCoordinates();
                 const userLocation = new google.maps.LatLng(
-                    position.coords.latitude,
-                    position.coords.longitude
+                    coords.latitude,
+                    coords.longitude
                 );
                 map.setCenter(userLocation);
                 userMarker.setPosition(userLocation);
                 updateLocationDisplay(userLocation);
+                // 초기 위치도 서버에 전송
+                updateLocationToServer(coords.latitude, coords.longitude);
             },
             handleGeolocationError,
             geolocationOptions
         );
 
-        // 10초마다 위치 업데이트 설정
+        // 3초마다 위치 업데이트 설정
         locationUpdateInterval = setInterval(() => {
             if (!isManualPingActive) {  // 수동 핑이 활성화되지 않은 경우에만 업데이트
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
+                        // localStorage에 위치 저장
+                        localStorage.setItem("latitude", position.coords.latitude);
+                        localStorage.setItem("longitude", position.coords.longitude);
+
+                        const coords = getCurrentCoordinates();
                         const userLocation = new google.maps.LatLng(
-                            position.coords.latitude,
-                            position.coords.longitude
+                            coords.latitude,
+                            coords.longitude
                         );
                         userMarker.setPosition(userLocation);
                         updateLocationDisplay(userLocation);
+                        // 서버에 위치 정보 전송
+                        updateLocationToServer(coords.latitude, coords.longitude);
                         console.log('위치 업데이트:', {
                             시간: new Date().toLocaleTimeString(),
-                            위도: position.coords.latitude,
-                            경도: position.coords.longitude
+                            위도: coords.latitude,
+                            경도: coords.longitude
                         });
                     },
                     handleGeolocationError,
                     geolocationOptions
                 );
+            }else{
+                const coords = getCurrentCoordinates();
+                updateLocationToServer(coords.latitude, coords.longitude);
             }
-        }, 10000);
+        }, 3000);
     } else {
         alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
+    }
+}
+
+// 서버에 위치 정보를 전송하는 함수
+async function updateLocationToServer(latitude, longitude) {
+    try {
+        const jwtToken = localStorage.getItem('jwtToken');
+        if (!jwtToken) {
+            console.error('JWT 토큰이 없습니다.');
+            return;
+        }
+
+        const url = `/api/location/update?latitude=${latitude}&longitude=${longitude}`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            if (response.status === 403) {
+                console.error('인증 오류: JWT 토큰이 유효하지 않거나 만료되었습니다.');
+                return;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // 응답 텍스트로 받기
+        const responseText = await response.text();
+        console.log('위치 업데이트 성공:', responseText);
+    } catch (error) {
+        console.error('위치 업데이트 실패:', error);
+        if (error.message) {
+            console.error('에러 상세:', error.message);
+        }
     }
 }
 
@@ -238,5 +300,7 @@ function moveToCurrentLocation() {
         alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
     }
 }
+
+
 
 document.addEventListener('DOMContentLoaded', loadGoogleMaps);
