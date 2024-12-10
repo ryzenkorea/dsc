@@ -27,10 +27,16 @@ async function loadToken() {
             throw new Error(`Failed to fetch token data: ${response.text}`);
         }
 
+        
+        const tokenResponse = await response.json();
+
+        let amount = tokenResponse.balance;
+        let onlyNumber = amount.replace(" ETH", ""); // 숫자만 남김
+
         // 보상 토큰 업데이트
         const rewardToken = document.getElementById("rewardToken");
         if (rewardToken) {
-            rewardToken.textContent = `${reward.totalTokens || 0}개`;
+            rewardToken.textContent = `${onlyNumber || 0}개`;
         }
     } catch (error) {
         console.error("Error loading token:", error);
