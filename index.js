@@ -15,9 +15,10 @@ const BACKEND_URL = 'http://3.39.57.93:8080';
 
 // CORS 미들웨어 추가
 app.use(cors({
-    origin: 'https://localhost:3000', // 프론트엔드 도메인
+    origin: ['https://localhost:3000', 'http://localhost:3000'], // 프론트엔드 도메인
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true, // 쿠키나 인증 정보를 포함하는 요청을 허용
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'] // 허용할 헤더 추가
 }));
 
 // 프록시 미들웨어 설정 1
