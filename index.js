@@ -24,6 +24,7 @@ app.use(cors({
 app.use('/api', createProxyMiddleware({
     target: BACKEND_URL,
     changeOrigin: true,
+    ws: true, // WebSocket 지원 추가
     pathRewrite: {
         '^/api': '', // '/api' 경로를 ''로 리작성
     },
@@ -41,26 +42,7 @@ app.use('/api', createProxyMiddleware({
     }
 }));
 
-// 프록시 미들웨어 설정 2
-app.use('/report', createProxyMiddleware({
-    target: BACKEND_URL,
-    changeOrigin: true,
-    pathRewrite: {
-        '^/report': '', // '/report' 경로를 ''로 리작성
-    },
-    onProxyReq: (proxyReq, req, res) => {
-        // 디버깅을 위한 로그 추가
-        console.log('Proxy Request:', {
-            path: proxyReq.path,
-            method: proxyReq.method,
-            headers: proxyReq.getHeaders()
-        });
-    },
-    onError: (err, req, res) => {
-        console.error('Proxy Error:', err);
-        res.status(500).send('Proxy Error');
-    }
-}));
+
 
 // 카카오 로그인 URL 요청
 app.get('/api/kakao/login-url', async (req, res) => {
