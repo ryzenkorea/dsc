@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>모빌리티 조기 경보 시스템</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.0/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <link href="../css/common.css" rel="stylesheet">
 </head>
 
@@ -118,7 +120,7 @@
                 <button onclick="window.location.href='/reward';" class="bg-green-500 text-white p-2 rounded-lg shadow-md hover:bg-green-600 transition-colors">신고 보상 확인</button>
                 <button onclick="window.location.href='/record';" class="bg-yellow-500 text-white p-2 rounded-lg shadow-md hover:bg-yellow-600 transition-colors">알림 기록 확인</button>
                 <!-- <button onclick="window.location.href='/html/page/test.html';" class="bg-green-500 text-white p-2 rounded-lg shadow-md hover:bg-green-600 transition-colors">test</button> -->
-                
+
             </div>
         </div>
     </main>
@@ -134,6 +136,8 @@
     <script src="../js/page/user.js"></script>
     <script src="../js/page/notion.js"></script>
     <script src="../js/page/utility.js"></script>
+    <script src="../js/modal/reportReceive.js"></script>
+
 
 </body>
 

@@ -2,7 +2,8 @@
 let map, userMarker;
 let isPingMode = false;
 let pingMarker = null;
-
+let locationUpdateInterval = null;
+let isManualPingActive = false;
 
 // 사용자 정의 마커 데이터(테스트)
 const markers = [
@@ -29,19 +30,19 @@ function loadGoogleMaps() {
 function createCustomMarkerIcon(color, shape) {
     let path;
     switch(shape) {
-        case 'falling': // 낙하물 위험 - 아래쪽 화살표
+        case 'falling':
             path = 'M-5,-8 L5,-8 L3,-3 L8,2 L0,10 L-8,2 L-3,-3 Z';
             break;
-        case 'obstacle': // 장애물 위험 - 세모 모양
+        case 'obstacle':
             path = 'M0,-10 L10,8 L-10,8 Z';
             break;
-        case 'wrongway': // 역주행 위험 - 자동차 모양
+        case 'wrongway':
             path = 'M-10,2 L-8,-2 L-3,-2 L-1,-6 L6,-6 L8,-2 L10,2 L8,6 L-8,6 Z M-6,6 L-4,9 L-1,9 L1,6 M4,6 L6,9 L9,9 L11,6';
             break;
-        case 'drowsy': // 졸음/음주 위험 - Z 모양
+        case 'drowsy':
             path = 'M-8,-8 L8,-8 L-8,8 L8,8';
             break;
-        case 'other': // 기타 - 물음표 모양
+        case 'other':
             path = 'M-4,-6 C-4,-10 4,-10 4,-6 C4,-2 0,-2 0,2 M-0.5,4 C-0.5,5.5 0.5,5.5 0.5,4 C0.5,2.5 -0.5,2.5 -0.5,4';
             break;
         default:
@@ -74,7 +75,7 @@ function initMap() {
         title: "현재 위치"
     });
 
-    // 사용자 정의 마커 추가(커스텀 핑 테스트)
+    // 사용자 정의 마커 추가
     markers.forEach(markerData => {
         new google.maps.Marker({
             position: { lat: markerData.lat, lng: markerData.lng },
@@ -83,13 +84,24 @@ function initMap() {
             title: `${markerData.color} ${markerData.shape}`
         });
     });
-    //위치 정보 수신 설정 관련
+
+    // 위치 정보 수신 설정 관련
+    startLocationUpdates();
+
+    map.addListener("click", (e) => {
+        if (isPingMode) addPingMarker(e.latLng, true);
+    });
+}
+
+// 위치 업데이트 시작 함수
+function startLocationUpdates() {
     const geolocationOptions = {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0
     };
 
+    // 초기 위치 가져오기
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -101,18 +113,35 @@ function initMap() {
                 userMarker.setPosition(userLocation);
                 updateLocationDisplay(userLocation);
             },
-            (error) => {
-                handleGeolocationError(error);
-            },
+            handleGeolocationError,
             geolocationOptions
         );
+
+        // 10초마다 위치 업데이트 설정
+        locationUpdateInterval = setInterval(() => {
+            if (!isManualPingActive) {  // 수동 핑이 활성화되지 않은 경우에만 업데이트
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLocation = new google.maps.LatLng(
+                            position.coords.latitude,
+                            position.coords.longitude
+                        );
+                        userMarker.setPosition(userLocation);
+                        updateLocationDisplay(userLocation);
+                        console.log('위치 업데이트:', {
+                            시간: new Date().toLocaleTimeString(),
+                            위도: position.coords.latitude,
+                            경도: position.coords.longitude
+                        });
+                    },
+                    handleGeolocationError,
+                    geolocationOptions
+                );
+            }
+        }, 10000);
     } else {
         alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
     }
-
-    map.addListener("click", (e) => {
-        if (isPingMode) addPingMarker(e.latLng, true);
-    });
 }
 
 // 위치 정보 오류 처리 함수
@@ -141,12 +170,10 @@ function updateLocationDisplay(location) {
     const lat = location.lat().toFixed(4);
     const lng = location.lng().toFixed(4);
 
-    // 로컬 스토리지에 값 초기화 후 저장
     localStorage.removeItem("latitude");
     localStorage.removeItem("longitude");
     localStorage.setItem("latitude", lat);
     localStorage.setItem("longitude", lng);
-
 
     const locationElement = document.getElementById('location');
     locationElement.innerHTML = `
@@ -154,7 +181,6 @@ function updateLocationDisplay(location) {
         <div>위도: ${lat}</div>
         <div>경도: ${lng}</div>
     `;
-
 }
 
 // 신고 지점 핑 찍기
@@ -169,7 +195,7 @@ function addPingMarker(location, isPingModeAction = false, showAlert = true) {
 
     userMarker.setPosition(location);
     updateLocationDisplay(location);
-
+    isManualPingActive = true;  // 수동 핑 활성화
 
     if (isPingModeAction) togglePingMode();
     if (showAlert) alert("위치변경이 완료되었습니다.");
@@ -203,10 +229,9 @@ function moveToCurrentLocation() {
                 addPingMarker(userLocation, false, false);
                 map.setCenter(userLocation);
                 updateLocationDisplay(userLocation);
+                isManualPingActive = false;  // 현재 위치로 이동시 수동 핑 비활성화
             },
-            (error) => {
-                handleGeolocationError(error);
-            },
+            handleGeolocationError,
             geolocationOptions
         );
     } else {
