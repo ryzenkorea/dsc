@@ -4,16 +4,7 @@ let isPingMode = false;
 let pingMarker = null;
 let locationUpdateInterval = null;
 let isManualPingActive = false;
-
-// 사용자 정의 마커 데이터(테스트)
-const markers = [
-    { lat: 36.310, lng: 127.408, color: "red", shape: "falling" },
-    { lat: 36.314, lng: 127.403, color: "blue", shape: "obstacle" },
-    { lat: 36.311, lng: 127.393, color: "green", shape: "wrongway" },
-    { lat: 36.313, lng: 127.400, color: "green", shape: "drowsy" },
-    { lat: 36.312, lng: 127.399, color: "yellow", shape: "other" },
-    { lat: 36.315, lng: 127.398, color: "yellow", shape: "other" },
-];
+let reportMarkers = []; // 신고 마커들을 저장할 배열
 
 // 구글 맵 API 로드
 function loadGoogleMaps() {
@@ -26,39 +17,6 @@ function loadGoogleMaps() {
     document.head.appendChild(script);
 }
 
-// SVG 아이콘 생성 함수(커스텀 핑 테스트)
-function createCustomMarkerIcon(color, shape) {
-    let path;
-    switch(shape) {
-        case 'falling':
-            path = 'M-5,-8 L5,-8 L3,-3 L8,2 L0,10 L-8,2 L-3,-3 Z';
-            break;
-        case 'obstacle':
-            path = 'M0,-10 L10,8 L-10,8 Z';
-            break;
-        case 'wrongway':
-            path = 'M-10,2 L-8,-2 L-3,-2 L-1,-6 L6,-6 L8,-2 L10,2 L8,6 L-8,6 Z M-6,6 L-4,9 L-1,9 L1,6 M4,6 L6,9 L9,9 L11,6';
-            break;
-        case 'drowsy':
-            path = 'M-8,-8 L8,-8 L-8,8 L8,8';
-            break;
-        case 'other':
-            path = 'M-4,-6 C-4,-10 4,-10 4,-6 C4,-2 0,-2 0,2 M-0.5,4 C-0.5,5.5 0.5,5.5 0.5,4 C0.5,2.5 -0.5,2.5 -0.5,4';
-            break;
-        default:
-            path = 'M-8,-8 L8,-8 L8,8 L-8,8 Z';
-    }
-
-    return {
-        path: path,
-        fillColor: color,
-        fillOpacity: 1,
-        strokeWeight: 1,
-        strokeColor: '#000000',
-        scale: 1,
-        anchor: new google.maps.Point(0, 0)
-    };
-}
 
 // 구글 지도 초기화 함수
 function initMap() {
@@ -75,16 +33,6 @@ function initMap() {
         title: "현재 위치"
     });
 
-    // 사용자 정의 마커 추가
-    markers.forEach(markerData => {
-        new google.maps.Marker({
-            position: { lat: markerData.lat, lng: markerData.lng },
-            map: map,
-            icon: createCustomMarkerIcon(markerData.color, markerData.shape),
-            title: `${markerData.color} ${markerData.shape}`
-        });
-    });
-
     // 위치 정보 수신 설정 관련
     startLocationUpdates();
 
@@ -92,8 +40,111 @@ function initMap() {
         if (isPingMode) addPingMarker(e.latLng, true);
     });
 }
+// SVG 아이콘 생성 함수
+function createCustomMarkerIcon(type) {
+    let color, path;
+    switch(type) {
+        case 'truck':
+            color = '#FF0000'; // 빨간색
+            path = 'M-5,-8 L5,-8 L3,-3 L8,2 L0,10 L-8,2 L-3,-3 Z';
+            break;
+        case 'road':
+            color = '#000000'; // 검은색
+            path = 'M0,-10 L10,8 L-10,8 Z';
+            break;
+        case 'car':
+            color = '#FFFF00'; // 노란색
+            path = 'M-10,2 L-8,-2 L-3,-2 L-1,-6 L6,-6 L8,-2 L10,2 L8,6 L-8,6 Z M-6,6 L-4,9 L-1,9 L1,6 M4,6 L6,9 L9,9 L11,6';
+            break;
+        case 'alcohol':
+            color = '#00FF00'; // 초록색
+            path = 'M-8,-8 L8,-8 L-8,8 L8,8';
+            break;
+        case 'other':
+            color = '#FFFFFF'; // 흰색
+            path = 'M-4,-6 C-4,-10 4,-10 4,-6 C4,-2 0,-2 0,2 M-0.5,4 C-0.5,5.5 0.5,5.5 0.5,4 C0.5,2.5 -0.5,2.5 -0.5,4';
+            break;
+        default:
+            color = '#808080'; // 기본 회색
+            path = 'M-8,-8 L8,-8 L8,8 L-8,8 Z';
+    }
 
-// 위치 업데이트 시작 함수
+    return {
+        path: path,
+        fillColor: color,
+        fillOpacity: 1,
+        strokeWeight: 1,
+        strokeColor: '#000000',
+        scale: 1,
+        anchor: new google.maps.Point(0, 0)
+    };
+}
+// 신고 데이터를 가져오는 함수
+async function fetchReportData() {
+
+    try {
+        const response = await fetch('/api/report/all', {
+            method: 'GET',
+            credentials: 'include'  // 쿠키 포함
+        });
+        if (!response.ok) {
+            throw new Error(`HTTPS error! status: ${response.status}`);
+        }
+        const reports = await response.json();
+        return reports;
+    } catch (error) {
+        console.error('신고 데이터 가져오기 실패:', error);
+        return [];
+    }
+}
+
+// 신고 마커 업데이트 함수
+async function updateReportMarkers() {
+    // 기존 마커들 제거
+    reportMarkers.forEach(marker => marker.setMap(null));
+    reportMarkers = [];
+
+    // 새로운 신고 데이터 가져오기
+    const reports = await fetchReportData();
+
+    // 현재 시간
+    const now = new Date();
+
+    // 신고 데이터 필터링 및 마커 생성
+    reports.forEach(report => {
+        const reportTime = new Date(report.timestamp);
+        const timeDiff = (now - reportTime) / (1000 * 60 * 60 * 24); // 일 단위로 변환
+
+        // 24시간 이내의 신뢰할 수 있는 신고만 표시
+        if (timeDiff <= 1 && report.trust === true) {
+            const marker = new google.maps.Marker({
+                position: { lat: report.latitude, lng: report.longitude },
+                map: map,
+                icon: createCustomMarkerIcon(report.type),
+                title: report.message || '신고 지점'
+            });
+
+            // 마커 클릭 이벤트 추가
+            marker.addListener('click', () => {
+                const infowindow = new google.maps.InfoWindow({
+                    content: `
+                        <div>
+                            <h3>신고 정보</h3>
+                            <p>유형: ${report.type}</p>
+                            <p>시간: ${new Date(report.timestamp).toLocaleString()}</p>
+                            <p>메시지: ${report.message || '없음'}</p>
+                            ${report.text ? `<p>상세: ${report.text}</p>` : ''}
+                        </div>
+                    `
+                });
+                infowindow.open(map, marker);
+            });
+
+            reportMarkers.push(marker);
+        }
+    });
+}
+
 function startLocationUpdates() {
     const geolocationOptions = {
         enableHighAccuracy: true,
@@ -111,8 +162,7 @@ function startLocationUpdates() {
     // 초기 위치 가져오기
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                // localStorage에 위치 저장
+            async (position) => {
                 localStorage.setItem("latitude", position.coords.latitude);
                 localStorage.setItem("longitude", position.coords.longitude);
 
@@ -124,19 +174,20 @@ function startLocationUpdates() {
                 map.setCenter(userLocation);
                 userMarker.setPosition(userLocation);
                 updateLocationDisplay(userLocation);
-                // 초기 위치도 서버에 전송
                 updateLocationToServer(coords.latitude, coords.longitude);
+
+                // 초기 신고 마커 업데이트
+                await updateReportMarkers();
             },
             handleGeolocationError,
             geolocationOptions
         );
 
-        // 3초마다 위치 업데이트 설정
-        locationUpdateInterval = setInterval(() => {
-            if (!isManualPingActive) {  // 수동 핑이 활성화되지 않은 경우에만 업데이트
+        // 3초마다 위치 및 신고 마커 업데이트
+        locationUpdateInterval = setInterval(async () => {
+            if (!isManualPingActive) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        // localStorage에 위치 저장
+                    async (position) => {
                         localStorage.setItem("latitude", position.coords.latitude);
                         localStorage.setItem("longitude", position.coords.longitude);
 
@@ -147,20 +198,19 @@ function startLocationUpdates() {
                         );
                         userMarker.setPosition(userLocation);
                         updateLocationDisplay(userLocation);
-                        // 서버에 위치 정보 전송
                         updateLocationToServer(coords.latitude, coords.longitude);
-                        console.log('위치 업데이트:', {
-                            시간: new Date().toLocaleTimeString(),
-                            위도: coords.latitude,
-                            경도: coords.longitude
-                        });
+
+                        // 신고 마커 업데이트
+                        await updateReportMarkers();
                     },
                     handleGeolocationError,
                     geolocationOptions
                 );
-            }else{
+            } else {
                 const coords = getCurrentCoordinates();
                 updateLocationToServer(coords.latitude, coords.longitude);
+                // 수동 핑 모드에서도 신고 마커 업데이트
+                await updateReportMarkers();
             }
         }, 3000);
     } else {
@@ -251,7 +301,8 @@ function addPingMarker(location, isPingModeAction = false, showAlert = true) {
     pingMarker = new google.maps.Marker({
         position: location,
         map: map,
-        title: "Ping 위치"
+        title: "Ping 위치",
+        icon: createCustomMarkerIcon('other')  // 커스텀 아이콘을 사용
     });
 
     userMarker.setPosition(location);
@@ -261,6 +312,7 @@ function addPingMarker(location, isPingModeAction = false, showAlert = true) {
     if (isPingModeAction) togglePingMode();
     if (showAlert) alert("위치변경이 완료되었습니다.");
 }
+
 
 // 핑 모드 토글 함수
 function togglePingMode() {
