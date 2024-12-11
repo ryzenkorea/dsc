@@ -27,7 +27,7 @@ async function loadToken() {
             throw new Error(`Failed to fetch token data: ${response.text}`);
         }
 
-        
+
         const tokenResponse = await response.json();
 
         let amount = tokenResponse.balance;

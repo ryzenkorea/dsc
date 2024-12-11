@@ -97,7 +97,7 @@ function initMap() {
 function startLocationUpdates() {
     const geolocationOptions = {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 20000,
         maximumAge: 0
     };
 
@@ -205,7 +205,6 @@ async function updateLocationToServer(latitude, longitude) {
         }
     }
 }
-
 // 위치 정보 오류 처리 함수
 function handleGeolocationError(error) {
     let errorMessage = "";
@@ -277,7 +276,7 @@ function moveToCurrentLocation() {
     if (navigator.geolocation) {
         const geolocationOptions = {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 20000,
             maximumAge: 0
         };
 
@@ -300,7 +299,5 @@ function moveToCurrentLocation() {
         alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
     }
 }
-
-
 
 document.addEventListener('DOMContentLoaded', loadGoogleMaps);
