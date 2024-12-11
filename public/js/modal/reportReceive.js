@@ -59,7 +59,7 @@ class NotificationManager {
         }
 
         const socket = new SockJS(`${backendUrl}/ws`);  // WebSocket URL 수정
-        this.stompClient = Stomp.over(() => socket);
+        this.stompClient = Stomp.over(socket);
 
         this.stompClient.connect({}, () => {
             const sanitizedEmail = email.replace("@", "_at_").replace(".", "_dot_");
