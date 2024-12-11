@@ -81,12 +81,13 @@ async function loadReward() {
 
                 reversedReports.forEach((report) => {
                     const formattedDate = formatDate(report.timestamp);
+                    const trustStatus = report.trust ? "Pass" : "Fail"; // Boolean 값 변환
                     const row = document.createElement("tr");
                     // p/f부분 아직 정보 없어서 임시로 id값 넣어둠
                     row.innerHTML = `
                         <td class="border px-4 py-2 text-center">${formattedDate || "날짜 없음"}</td>
                         <td class="border px-4 py-2 text-center">${report.message || "내용 없음"}</td>
-                        <td class="border px-4 py-2 text-center">${report.id || "N/A"}</td>
+                        <td class="border px-4 py-2 text-center">${trustStatus}</td>
                     `;
                     tableBody.appendChild(row);
                 });
